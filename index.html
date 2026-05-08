@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>新包裹签收</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 28px 0;
+      background: radial-gradient(circle at center, #f7f8fa 0, #d8dbe1 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: #172033;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .device {
+      position: relative;
+      width: 405px;
+      height: 862px;
+      padding: 16px 15px 18px;
+      border-radius: 46px;
+      background: linear-gradient(145deg, #20242d, #0c0f16);
+      box-shadow:
+        0 28px 70px rgba(11, 15, 24, 0.34),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.08);
+    }
+
+    .device::before {
+      content: "";
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      width: 92px;
+      height: 24px;
+      border-radius: 0 0 16px 16px;
+      background: #0c0f16;
+      transform: translateX(-50%);
+      z-index: 2;
+    }
+
+    .device::after {
+      content: "";
+      position: absolute;
+      right: -4px;
+      top: 148px;
+      width: 4px;
+      height: 78px;
+      border-radius: 0 4px 4px 0;
+      background: #171b24;
+    }
+
+    .phone {
+      position: relative;
+      width: 375px;
+      height: 828px;
+      border-radius: 34px;
+      background: #f5f6f8;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+    }
+
+    .screen {
+      height: 100%;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: none;
+    }
+
+    .screen::-webkit-scrollbar {
+      display: none;
+    }
+
+    .status-bar {
+      height: 36px;
+      padding: 11px 18px 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      background: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    .signal {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: #0d1424;
+      font-size: 12px;
+    }
+
+    .signal-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 11px;
+    }
+
+    .signal-bars span {
+      display: block;
+      width: 3px;
+      border-radius: 3px;
+      background: #0d1424;
+    }
+
+    .signal-bars span:nth-child(1) {
+      height: 4px;
+    }
+
+    .signal-bars span:nth-child(2) {
+      height: 6px;
+    }
+
+    .signal-bars span:nth-child(3) {
+      height: 8px;
+    }
+
+    .signal-bars span:nth-child(4) {
+      height: 10px;
+    }
+
+    .battery {
+      width: 22px;
+      height: 10px;
+      border: 1.5px solid #0d1424;
+      border-radius: 3px;
+      position: relative;
+    }
+
+    .battery::before {
+      content: "";
+      position: absolute;
+      right: -4px;
+      top: 2px;
+      width: 2px;
+      height: 4px;
+      border-radius: 0 2px 2px 0;
+      background: #0d1424;
+    }
+
+    .battery::after {
+      content: "";
+      position: absolute;
+      left: 2px;
+      top: 2px;
+      width: 15px;
+      height: 4px;
+      border-radius: 2px;
+      background: #0d1424;
+    }
+
+    .nav {
+      height: 54px;
+      padding: 0 18px;
+      display: grid;
+      grid-template-columns: 42px 1fr 42px;
+      align-items: center;
+      background: #fff;
+    }
+
+    .back {
+      width: 18px;
+      height: 18px;
+      border-left: 2px solid #1c2435;
+      border-bottom: 2px solid #1c2435;
+      transform: rotate(45deg);
+    }
+
+    .title {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .search-wrap {
+      background: #fff;
+      padding: 0 14px 12px;
+    }
+
+    .search {
+      height: 38px;
+      padding: 0 15px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      border-radius: 22px;
+      background: #f2f2f3;
+      color: #9a9ca4;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .scan {
+      width: 19px;
+      height: 19px;
+      position: relative;
+      flex: 0 0 auto;
+    }
+
+    .scan::before,
+    .scan::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(#ff7c2a, #ff7c2a) left top / 8px 2px no-repeat,
+        linear-gradient(#ff7c2a, #ff7c2a) left top / 2px 8px no-repeat,
+        linear-gradient(#ff7c2a, #ff7c2a) right top / 8px 2px no-repeat,
+        linear-gradient(#ff7c2a, #ff7c2a) right top / 2px 8px no-repeat,
+        linear-gradient(#ff7c2a, #ff7c2a) left bottom / 8px 2px no-repeat,
+        linear-gradient(#ff7c2a, #ff7c2a) left bottom / 2px 8px no-repeat,
+        linear-gradient(#ff7c2a, #ff7c2a) right bottom / 8px 2px no-repeat,
+        linear-gradient(#ff7c2a, #ff7c2a) right bottom / 2px 8px no-repeat;
+    }
+
+    .scan::after {
+      inset: 6px 3px;
+      background: linear-gradient(#232a39, #232a39) center / 13px 2px no-repeat;
+    }
+
+    .content {
+      padding: 10px 10px 22px;
+    }
+
+    .waybill-card {
+      margin-bottom: 10px;
+      padding: 14px 14px 12px;
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 1px 0 rgba(23, 32, 51, 0.03);
+    }
+
+    .waybill-top {
+      display: grid;
+      grid-template-columns: 1fr 64px;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .waybill-main {
+      min-width: 0;
+    }
+
+    .waybill-line {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .urgent {
+      min-width: 43px;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 4px 2px 2px 4px;
+      background: linear-gradient(135deg, #f43a58, #ff7a31);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 20px;
+      white-space: nowrap;
+    }
+
+    .waybill-no {
+      overflow: hidden;
+      color: #151f31;
+      font-size: 17px;
+      font-weight: 800;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .sign-btn {
+      height: 42px;
+      border: 0;
+      border-radius: 7px;
+      background: #ff912e;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      box-shadow: 0 5px 10px rgba(255, 145, 46, 0.22);
+    }
+
+    .sign-btn:active,
+    .dialog-action:active,
+    .drawer-action:active {
+      opacity: 0.82;
+    }
+
+    .divider {
+      height: 1px;
+      margin: 12px 0;
+      background: repeating-linear-gradient(90deg, #eef0f4 0, #eef0f4 5px, transparent 5px, transparent 9px);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      color: #6d7280;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .section-title b {
+      color: #171f31;
+    }
+
+    .order-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .order {
+      padding: 10px 10px 9px;
+      border-radius: 7px;
+      background: #f5f6f8;
+    }
+
+    .order-head {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .order-code {
+      min-width: 0;
+      color: #172033;
+      font-size: 15px;
+      font-weight: 800;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 66px 1fr;
+      row-gap: 6px;
+      color: #747986;
+      font-size: 13px;
+      line-height: 1.2;
+    }
+
+    .info-grid .label {
+      color: #8b8f99;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.56);
+    }
+
+    .overlay.show {
+      display: flex;
+    }
+
+    .dialog {
+      width: 344px;
+      overflow: hidden;
+      border-radius: 18px;
+      background: #fff;
+    }
+
+    .dialog-title {
+      min-height: 118px;
+      padding: 46px 22px 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #172033;
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.35;
+      text-align: center;
+    }
+
+    .dialog-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-top: 1px solid #e7e8ec;
+    }
+
+    .dialog-action,
+    .drawer-action {
+      height: 58px;
+      border: 0;
+      background: #fff;
+      color: #8c8f9a;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .dialog-action + .dialog-action,
+    .drawer-action + .drawer-action {
+      border-left: 1px solid #e7e8ec;
+    }
+
+    .dialog-action.primary,
+    .drawer-action.primary {
+      color: #ff7f27;
+      font-weight: 800;
+    }
+
+    .drawer-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 25;
+      display: none;
+      align-items: flex-end;
+      background: rgba(0, 0, 0, 0.56);
+    }
+
+    .drawer-overlay.show {
+      display: flex;
+    }
+
+    .drawer {
+      width: 100%;
+      overflow: hidden;
+      border-radius: 18px 18px 0 0;
+      background: #fff;
+    }
+
+    .drawer-body {
+      padding: 24px 20px 28px;
+    }
+
+    .drawer-title {
+      margin: 0 0 22px;
+      color: #172033;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .return-info {
+      padding: 14px 16px;
+      border-radius: 8px;
+      background: #f4f5f7;
+      color: #7b808b;
+      font-size: 18px;
+      line-height: 1.75;
+    }
+
+    .upload-title {
+      margin: 26px 0 14px;
+      color: #6f7480;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .upload-title em {
+      color: #f03b45;
+      font-style: normal;
+    }
+
+    .upload-list {
+      display: flex;
+      gap: 18px;
+    }
+
+    .upload-box {
+      width: 98px;
+      height: 98px;
+      border-radius: 12px;
+      background: #c7c7c7;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .upload-box.camera {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .upload-box.camera::before {
+      content: "";
+      width: 56px;
+      height: 42px;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: inset 0 0 0 999px #fff;
+      clip-path: polygon(0 24%, 28% 24%, 35% 8%, 65% 8%, 72% 24%, 100% 24%, 100% 100%, 0 100%);
+    }
+
+    .upload-box.camera::after {
+      content: "";
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border: 4px solid #a88256;
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    .upload-box.photo {
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.3), transparent 42%),
+        linear-gradient(28deg, #9d744b 0 45%, #c39561 45% 70%, #e3c19a 70%);
+    }
+
+    .upload-box.photo::before {
+      content: "";
+      position: absolute;
+      inset: 18px 10px 14px;
+      border-radius: 6px;
+      background: #d7b07b;
+      transform: skewY(-12deg);
+    }
+
+    .upload-box.photo::after {
+      content: "×";
+      position: absolute;
+      right: 7px;
+      top: 7px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.62);
+      color: #fff;
+      font-size: 30px;
+      line-height: 27px;
+      text-align: center;
+    }
+
+    .drawer-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-top: 1px solid #e7e8ec;
+    }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: 36px;
+      z-index: 40;
+      display: none;
+      transform: translateX(-50%);
+      padding: 9px 16px;
+      border-radius: 18px;
+      background: rgba(0, 0, 0, 0.72);
+      color: #fff;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      display: block;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="device">
+    <main class="phone">
+      <div class="screen">
+        <header>
+          <div class="status-bar">
+            <div>09:48</div>
+            <div class="signal" aria-hidden="true">
+              <div class="signal-bars">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <span>Wi-Fi</span>
+              <div class="battery"></div>
+            </div>
+          </div>
+          <nav class="nav">
+            <div class="back" aria-label="返回"></div>
+            <div class="title">包裹签收</div>
+            <div></div>
+          </nav>
+          <div class="search-wrap">
+            <div class="search">
+              <span class="scan"></span>
+              <span>运单号/采购订单号/平台/供应商</span>
+            </div>
+          </div>
+        </header>
+
+        <section class="content">
+      <article class="waybill-card">
+        <div class="waybill-top">
+          <div class="waybill-main">
+            <div class="waybill-line">
+              <span class="urgent">紧急⚡</span>
+              <span class="waybill-no">SF35680003434</span>
+            </div>
+          </div>
+          <button class="sign-btn" type="button">签收</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-title">
+          <span>采购单资料</span>
+          <b>共 2 单</b>
+        </div>
+        <div class="order-list">
+          <section class="order">
+            <div class="order-head">
+              <div class="order-code">CG34990450054｜药师帮</div>
+            </div>
+            <div class="info-grid">
+              <span class="label">供应商</span>
+              <span>广东帝豪医药有限公司</span>
+              <span class="label">采购金额</span>
+              <span>34645.88元</span>
+              <span class="label">采购时间</span>
+              <span>2025-12-06 09:00:00</span>
+            </div>
+          </section>
+
+          <section class="order">
+            <div class="order-head">
+              <div class="order-code">CG34990450102｜药师帮</div>
+            </div>
+            <div class="info-grid">
+              <span class="label">供应商</span>
+              <span>广州康源医药有限公司</span>
+              <span class="label">采购金额</span>
+              <span>12860.00元</span>
+              <span class="label">采购时间</span>
+              <span>2025-12-06 10:20:00</span>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article class="waybill-card">
+        <div class="waybill-top">
+          <div class="waybill-main">
+            <div class="waybill-line">
+              <span class="urgent">紧急⚡</span>
+              <span class="waybill-no">SF35680007891</span>
+            </div>
+          </div>
+          <button class="sign-btn" type="button">签收</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-title">
+          <span>采购单资料</span>
+          <b>共 3 单</b>
+        </div>
+        <div class="order-list">
+          <section class="order">
+            <div class="order-head">
+              <div class="order-code">CG34990450988｜药师帮</div>
+            </div>
+            <div class="info-grid">
+              <span class="label">供应商</span>
+              <span>广东帝豪医药有限公司</span>
+              <span class="label">采购金额</span>
+              <span>8340.90元</span>
+              <span class="label">采购时间</span>
+              <span>2025-12-06 11:30:00</span>
+            </div>
+          </section>
+
+          <section class="order">
+            <div class="order-head">
+              <div class="order-code">CG34990451266｜药师帮</div>
+            </div>
+            <div class="info-grid">
+              <span class="label">供应商</span>
+              <span>广东帝豪医药有限公司</span>
+              <span class="label">采购金额</span>
+              <span>2150.00元</span>
+              <span class="label">采购时间</span>
+              <span>2025-12-06 11:45:00</span>
+            </div>
+          </section>
+
+          <section class="order">
+            <div class="order-head">
+              <div class="order-code">CG34990451821｜药师帮</div>
+            </div>
+            <div class="info-grid">
+              <span class="label">供应商</span>
+              <span>广州康源医药有限公司</span>
+              <span class="label">采购金额</span>
+              <span>6980.50元</span>
+              <span class="label">采购时间</span>
+              <span>2025-12-06 12:05:00</span>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article class="waybill-card">
+        <div class="waybill-top">
+          <div class="waybill-main">
+            <div class="waybill-line">
+              <span class="waybill-no">JDVA3499045621</span>
+            </div>
+          </div>
+          <button class="sign-btn" type="button">签收</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-title">
+          <span>采购单资料</span>
+          <b>共 1 单</b>
+        </div>
+        <div class="order-list">
+          <section class="order">
+            <div class="order-head">
+              <div class="order-code">CG34990452666｜京东药急送</div>
+            </div>
+            <div class="info-grid">
+              <span class="label">供应商</span>
+              <span>深圳市康德医药有限公司</span>
+              <span class="label">采购金额</span>
+              <span>5680.20元</span>
+              <span class="label">采购时间</span>
+              <span>2025-12-06 12:30:00</span>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article class="waybill-card">
+        <div class="waybill-top">
+          <div class="waybill-main">
+            <div class="waybill-line">
+              <span class="urgent">紧急⚡</span>
+              <span class="waybill-no">YT34990458888</span>
+            </div>
+          </div>
+          <button class="sign-btn" type="button">签收</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-title">
+          <span>采购单资料</span>
+          <b>共 4 单</b>
+        </div>
+        <div class="order-list">
+          <section class="order">
+            <div class="order-head">
+              <div class="order-code">CG34990453101｜药师帮</div>
+            </div>
+            <div class="info-grid">
+              <span class="label">供应商</span>
+              <span>佛山健民医药有限公司</span>
+              <span class="label">采购金额</span>
+              <span>4200.00元</span>
+              <span class="label">采购时间</span>
+              <span>2025-12-06 13:05:00</span>
+            </div>
+          </section>
+
+          <section class="order">
+            <div class="order-head">
+              <div class="order-code">CG34990453102｜药师帮</div>
+            </div>
+            <div class="info-grid">
+              <span class="label">供应商</span>
+              <span>佛山健民医药有限公司</span>
+              <span class="label">采购金额</span>
+              <span>3188.60元</span>
+              <span class="label">采购时间</span>
+              <span>2025-12-06 13:08:00</span>
+            </div>
+          </section>
+
+          <section class="order">
+            <div class="order-head">
+              <div class="order-code">CG34990453103｜药师帮</div>
+            </div>
+            <div class="info-grid">
+              <span class="label">供应商</span>
+              <span>广州康源医药有限公司</span>
+              <span class="label">采购金额</span>
+              <span>965.80元</span>
+              <span class="label">采购时间</span>
+              <span>2025-12-06 13:12:00</span>
+            </div>
+          </section>
+
+          <section class="order">
+            <div class="order-head">
+              <div class="order-code">CG34990453104｜药师帮</div>
+            </div>
+            <div class="info-grid">
+              <span class="label">供应商</span>
+              <span>广东帝豪医药有限公司</span>
+              <span class="label">采购金额</span>
+              <span>1760.00元</span>
+              <span class="label">采购时间</span>
+              <span>2025-12-06 13:16:00</span>
+            </div>
+          </section>
+        </div>
+      </article>
+
+      <article class="waybill-card">
+        <div class="waybill-top">
+          <div class="waybill-main">
+            <div class="waybill-line">
+              <span class="waybill-no">ZTO34990459999</span>
+            </div>
+          </div>
+          <button class="sign-btn" type="button">签收</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-title">
+          <span>采购单资料</span>
+          <b>共 5 单</b>
+        </div>
+        <div class="order-list">
+          <section class="order">
+            <div class="order-head">
+              <div class="order-code">CG34990454001｜药师帮</div>
+            </div>
+            <div class="info-grid">
+              <span class="label">供应商</span>
+              <span>东莞市仁信医药有限公司</span>
+              <span class="label">采购金额</span>
+              <span>2860.00元</span>
+              <span class="label">采购时间</span>
+              <span>2025-12-06 14:00:00</span>
+            </div>
+          </section>
+
+          <section class="order">
+            <div class="order-head">
+              <div class="order-code">CG34990454002｜药师帮</div>
+            </div>
+            <div class="info-grid">
+              <span class="label">供应商</span>
+              <span>东莞市仁信医药有限公司</span>
+              <span class="label">采购金额</span>
+              <span>1520.30元</span>
+              <span class="label">采购时间</span>
+              <span>2025-12-06 14:04:00</span>
+            </div>
+          </section>
+
+          <section class="order">
+            <div class="order-head">
+              <div class="order-code">CG34990454003｜药师帮</div>
+            </div>
+            <div class="info-grid">
+              <span class="label">供应商</span>
+              <span>深圳市康德医药有限公司</span>
+              <span class="label">采购金额</span>
+              <span>739.90元</span>
+              <span class="label">采购时间</span>
+              <span>2025-12-06 14:08:00</span>
+            </div>
+          </section>
+
+          <section class="order">
+            <div class="order-head">
+              <div class="order-code">CG34990454004｜药师帮</div>
+            </div>
+            <div class="info-grid">
+              <span class="label">供应商</span>
+              <span>广东帝豪医药有限公司</span>
+              <span class="label">采购金额</span>
+              <span>4025.60元</span>
+              <span class="label">采购时间</span>
+              <span>2025-12-06 14:12:00</span>
+            </div>
+          </section>
+
+          <section class="order">
+            <div class="order-head">
+              <div class="order-code">CG34990454005｜药师帮</div>
+            </div>
+            <div class="info-grid">
+              <span class="label">供应商</span>
+              <span>广州康源医药有限公司</span>
+              <span class="label">采购金额</span>
+              <span>1188.00元</span>
+              <span class="label">采购时间</span>
+              <span>2025-12-06 14:18:00</span>
+            </div>
+          </section>
+        </div>
+      </article>
+        </section>
+      </div>
+
+    <section class="overlay" id="signConfirm">
+      <div class="dialog">
+        <div class="dialog-title">确定签收该运单？</div>
+        <div class="dialog-actions">
+          <button class="dialog-action" type="button" data-action="cancel-sign">取消</button>
+          <button class="dialog-action primary" type="button" data-action="confirm-sign">确定</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="overlay" id="damageConfirm">
+      <div class="dialog">
+        <div class="dialog-title">包裹是否有破损，需要采退？</div>
+        <div class="dialog-actions">
+          <button class="dialog-action" type="button" data-action="no-damage">否</button>
+          <button class="dialog-action primary" type="button" data-action="has-damage">是</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="drawer-overlay" id="returnDrawer">
+      <div class="drawer">
+        <div class="drawer-body">
+          <h2 class="drawer-title">创建采退工单</h2>
+          <div class="return-info">
+            <div>采购订单号：<span id="drawerOrderNo">CG34990450054</span></div>
+            <div>运单号：<span id="drawerWaybillNo">SF35680003434</span></div>
+          </div>
+          <div class="upload-title"><em>*</em> 包裹图片（最多可上传6张图片）</div>
+          <div class="upload-list">
+            <div class="upload-box camera" aria-label="上传图片"></div>
+            <div class="upload-box photo" aria-label="已上传图片"></div>
+          </div>
+        </div>
+        <div class="drawer-actions">
+          <button class="drawer-action" type="button" data-action="return-cancel">取消</button>
+          <button class="drawer-action primary" type="button" data-action="return-submit">确定</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="toast" id="toast">签收成功</div>
+  </main>
+  </div>
+
+  <script>
+    const signConfirm = document.getElementById("signConfirm");
+    const damageConfirm = document.getElementById("damageConfirm");
+    const returnDrawer = document.getElementById("returnDrawer");
+    const drawerWaybillNo = document.getElementById("drawerWaybillNo");
+    const drawerOrderNo = document.getElementById("drawerOrderNo");
+    const toast = document.getElementById("toast");
+    let activeCard = null;
+
+    function showLayer(layer) {
+      layer.classList.add("show");
+    }
+
+    function hideLayer(layer) {
+      layer.classList.remove("show");
+    }
+
+    function getCardInfo(card) {
+      return {
+        waybillNo: card.querySelector(".waybill-no").textContent.trim(),
+        orderNo: card.querySelector(".order-code").textContent.split("｜")[0].trim()
+      };
+    }
+
+    function finishSign() {
+      hideLayer(signConfirm);
+      hideLayer(damageConfirm);
+      hideLayer(returnDrawer);
+
+      if (activeCard) {
+        activeCard.remove();
+        activeCard = null;
+      }
+
+      toast.classList.add("show");
+      window.setTimeout(() => {
+        toast.classList.remove("show");
+      }, 1500);
+    }
+
+    document.querySelectorAll(".sign-btn").forEach((button) => {
+      button.addEventListener("click", () => {
+        activeCard = button.closest(".waybill-card");
+        showLayer(signConfirm);
+      });
+    });
+
+    document.addEventListener("click", (event) => {
+      const action = event.target.dataset.action;
+      if (!action) return;
+
+      if (action === "cancel-sign") {
+        hideLayer(signConfirm);
+      }
+
+      if (action === "confirm-sign") {
+        hideLayer(signConfirm);
+        showLayer(damageConfirm);
+      }
+
+      if (action === "no-damage") {
+        finishSign();
+      }
+
+      if (action === "has-damage") {
+        const info = getCardInfo(activeCard);
+        drawerWaybillNo.textContent = info.waybillNo;
+        drawerOrderNo.textContent = info.orderNo;
+        hideLayer(damageConfirm);
+        showLayer(returnDrawer);
+      }
+
+      if (action === "return-cancel" || action === "return-submit") {
+        finishSign();
+      }
+    });
+  </script>
+</body>
+</html>
