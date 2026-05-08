@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="app-version" content="10.0.1" />
   <title>新包裹签收</title>
   <style>
     * {
@@ -995,6 +996,23 @@
   </div>
 
   <script>
+    const APP_VERSION = "10.0.1";
+    const PROGRESS_STORAGE_KEY = "new-receipt-sign-progress";
+    const SEARCH_SAVE_DELAY = 100;
+
+    function addStaticResourceVersion() {
+      document.querySelectorAll("link[href], script[src], img[src]").forEach((element) => {
+        const attr = element.hasAttribute("href") ? "href" : "src";
+        const url = element.getAttribute(attr);
+        if (!url || url.startsWith("#") || url.startsWith("data:") || url.startsWith("blob:") || /[?&]v=/.test(url)) {
+          return;
+        }
+
+        const separator = url.includes("?") ? "&" : "?";
+        element.setAttribute(attr, `${url}${separator}v=${encodeURIComponent(APP_VERSION)}`);
+      });
+    }
+
     const signConfirm = document.getElementById("signConfirm");
     const damageConfirm = document.getElementById("damageConfirm");
     const returnDrawer = document.getElementById("returnDrawer");
@@ -1003,7 +1021,44 @@
     const toast = document.getElementById("toast");
     const waybillSearch = document.getElementById("waybillSearch");
     const emptyState = document.getElementById("emptyState");
+    const screen = document.querySelector(".screen");
     let activeCard = null;
+    let saveScrollTimer = null;
+
+    function getDefaultProgress() {
+      return {
+        signedWaybillNos: [],
+        searchKeyword: "",
+        scrollTop: 0
+      };
+    }
+
+    function readProgress() {
+      try {
+        const cache = JSON.parse(localStorage.getItem(PROGRESS_STORAGE_KEY));
+        return {
+          ...getDefaultProgress(),
+          ...cache,
+          signedWaybillNos: Array.isArray(cache?.signedWaybillNos) ? cache.signedWaybillNos : []
+        };
+      } catch (error) {
+        return getDefaultProgress();
+      }
+    }
+
+    let progress = readProgress();
+
+    function saveProgress() {
+      try {
+        localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({
+          ...progress,
+          appVersion: APP_VERSION,
+          updatedAt: Date.now()
+        }));
+      } catch (error) {
+        // 本地缓存不可用时不阻断签收主流程。
+      }
+    }
 
     function showLayer(layer) {
       layer.classList.add("show");
@@ -1018,6 +1073,25 @@
         waybillNo: card.querySelector(".waybill-no").textContent.trim(),
         orderNo: card.querySelector(".order-code").textContent.split("｜")[0].trim()
       };
+    }
+
+    function getWaybillNo(card) {
+      return card.querySelector(".waybill-no").textContent.trim();
+    }
+
+    function markWaybillSigned(waybillNo) {
+      if (!progress.signedWaybillNos.includes(waybillNo)) {
+        progress.signedWaybillNos.push(waybillNo);
+        saveProgress();
+      }
+    }
+
+    function restoreSignedWaybills() {
+      document.querySelectorAll(".content .waybill-card").forEach((card) => {
+        if (progress.signedWaybillNos.includes(getWaybillNo(card))) {
+          card.remove();
+        }
+      });
     }
 
     function applyWaybillSearch() {
@@ -1036,12 +1110,29 @@
       emptyState.classList.toggle("show", visibleCount === 0);
     }
 
+    function saveSearchKeyword() {
+      progress.searchKeyword = waybillSearch.value.trim();
+      saveProgress();
+    }
+
+    function restoreSearchKeyword() {
+      waybillSearch.value = progress.searchKeyword;
+      applyWaybillSearch();
+    }
+
+    function restoreScrollTop() {
+      requestAnimationFrame(() => {
+        screen.scrollTop = progress.scrollTop || 0;
+      });
+    }
+
     function finishSign() {
       hideLayer(signConfirm);
       hideLayer(damageConfirm);
       hideLayer(returnDrawer);
 
       if (activeCard) {
+        markWaybillSigned(getWaybillNo(activeCard));
         activeCard.remove();
         activeCard = null;
       }
@@ -1054,6 +1145,11 @@
       }, 1500);
     }
 
+    addStaticResourceVersion();
+    restoreSignedWaybills();
+    restoreSearchKeyword();
+    restoreScrollTop();
+
     document.querySelectorAll(".sign-btn").forEach((button) => {
       button.addEventListener("click", () => {
         activeCard = button.closest(".waybill-card");
@@ -1061,8 +1157,22 @@
       });
     });
 
-    waybillSearch.addEventListener("input", applyWaybillSearch);
-    waybillSearch.addEventListener("search", applyWaybillSearch);
+    waybillSearch.addEventListener("input", () => {
+      applyWaybillSearch();
+      saveSearchKeyword();
+    });
+    waybillSearch.addEventListener("search", () => {
+      applyWaybillSearch();
+      saveSearchKeyword();
+    });
+
+    screen.addEventListener("scroll", () => {
+      window.clearTimeout(saveScrollTimer);
+      saveScrollTimer = window.setTimeout(() => {
+        progress.scrollTop = screen.scrollTop;
+        saveProgress();
+      }, SEARCH_SAVE_DELAY);
+    });
 
     document.addEventListener("click", (event) => {
       const action = event.target.dataset.action;
