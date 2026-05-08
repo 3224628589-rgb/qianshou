@@ -200,6 +200,20 @@
       font-weight: 600;
     }
 
+    .search-input {
+      width: 100%;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: #172033;
+      font: inherit;
+    }
+
+    .search-input::placeholder {
+      color: #9a9ca4;
+    }
+
     .scan {
       width: 19px;
       height: 19px;
@@ -238,6 +252,25 @@
       border-radius: 10px;
       background: #fff;
       box-shadow: 0 1px 0 rgba(23, 32, 51, 0.03);
+    }
+
+    .waybill-card.hidden {
+      display: none;
+    }
+
+    .empty-state {
+      display: none;
+      padding: 36px 20px;
+      border-radius: 10px;
+      background: #fff;
+      color: #8a8e99;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .empty-state.show {
+      display: block;
     }
 
     .waybill-top {
@@ -593,7 +626,13 @@
           <div class="search-wrap">
             <div class="search">
               <span class="scan"></span>
-              <span>运单号/采购订单号/平台/供应商</span>
+              <input
+                class="search-input"
+                id="waybillSearch"
+                type="search"
+                placeholder="请输入完整运单号精准搜索"
+                autocomplete="off"
+              />
             </div>
           </div>
         </header>
@@ -906,6 +945,7 @@
           </section>
         </div>
       </article>
+          <div class="empty-state" id="emptyState">未找到匹配的待签收运单</div>
         </section>
       </div>
 
@@ -961,6 +1001,8 @@
     const drawerWaybillNo = document.getElementById("drawerWaybillNo");
     const drawerOrderNo = document.getElementById("drawerOrderNo");
     const toast = document.getElementById("toast");
+    const waybillSearch = document.getElementById("waybillSearch");
+    const emptyState = document.getElementById("emptyState");
     let activeCard = null;
 
     function showLayer(layer) {
@@ -978,6 +1020,22 @@
       };
     }
 
+    function applyWaybillSearch() {
+      const keyword = waybillSearch.value.trim().toUpperCase();
+      const cards = document.querySelectorAll(".content .waybill-card");
+      let visibleCount = 0;
+
+      cards.forEach((card) => {
+        const waybillNo = card.querySelector(".waybill-no").textContent.trim().toUpperCase();
+        const shouldShow = keyword === "" || waybillNo === keyword;
+        card.classList.toggle("hidden", !shouldShow);
+        if (shouldShow) visibleCount += 1;
+      });
+
+      emptyState.textContent = keyword === "" ? "暂无待签收运单" : "未找到匹配的待签收运单";
+      emptyState.classList.toggle("show", visibleCount === 0);
+    }
+
     function finishSign() {
       hideLayer(signConfirm);
       hideLayer(damageConfirm);
@@ -987,6 +1045,8 @@
         activeCard.remove();
         activeCard = null;
       }
+
+      applyWaybillSearch();
 
       toast.classList.add("show");
       window.setTimeout(() => {
@@ -1000,6 +1060,9 @@
         showLayer(signConfirm);
       });
     });
+
+    waybillSearch.addEventListener("input", applyWaybillSearch);
+    waybillSearch.addEventListener("search", applyWaybillSearch);
 
     document.addEventListener("click", (event) => {
       const action = event.target.dataset.action;
