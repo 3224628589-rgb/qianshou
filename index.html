@@ -259,6 +259,11 @@
       display: none;
     }
 
+    .purchase-card {
+      border: 1px dashed #cfd7ff;
+      background: #fbfcff;
+    }
+
     .empty-state {
       display: none;
       padding: 36px 20px;
@@ -278,7 +283,7 @@
       display: grid;
       grid-template-columns: 1fr 64px;
       gap: 10px;
-      align-items: start;
+      align-items: center;
     }
 
     .waybill-main {
@@ -305,6 +310,18 @@
       white-space: nowrap;
     }
 
+    .purchase-tag {
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 4px;
+      background: #eef2ff;
+      color: #4d65d9;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 20px;
+      white-space: nowrap;
+    }
+
     .waybill-no {
       overflow: hidden;
       color: #151f31;
@@ -315,7 +332,7 @@
     }
 
     .sign-btn {
-      height: 42px;
+      height: 34px;
       border: 0;
       border-radius: 7px;
       background: #ff912e;
@@ -389,6 +406,15 @@
 
     .info-grid .label {
       color: #8b8f99;
+    }
+
+    .purchase-card .divider {
+      margin: 10px 0;
+    }
+
+    .purchase-card .order {
+      padding-top: 0;
+      background: transparent;
     }
 
     .overlay {
@@ -631,7 +657,7 @@
                 class="search-input"
                 id="waybillSearch"
                 type="search"
-                placeholder="请输入完整运单号精准搜索"
+                placeholder="运单号/采购单号/平台/供应商/金额"
                 autocomplete="off"
               />
             </div>
@@ -946,6 +972,35 @@
           </section>
         </div>
       </article>
+
+      <article class="waybill-card purchase-card">
+        <div class="waybill-top">
+          <div class="waybill-main">
+            <div class="waybill-line">
+              <span class="purchase-tag">无运单号</span>
+              <span class="waybill-no">CG34990456088｜药师帮</span>
+            </div>
+          </div>
+          <button class="sign-btn" type="button">签收</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="order-list">
+          <section class="order">
+            <div class="info-grid">
+              <span class="label">采购平台</span>
+              <span>药师帮</span>
+              <span class="label">供应商</span>
+              <span>广州康源医药有限公司</span>
+              <span class="label">采购金额</span>
+              <span>6328.00元</span>
+              <span class="label">采购时间</span>
+              <span>2025-12-06 15:20:00</span>
+            </div>
+          </section>
+        </div>
+      </article>
           <div class="empty-state" id="emptyState">未找到匹配的待签收运单</div>
         </section>
       </div>
@@ -960,6 +1015,7 @@
       </div>
     </section>
 
+    <!--
     <section class="overlay" id="damageConfirm">
       <div class="dialog">
         <div class="dialog-title">包裹是否有破损，需要采退？</div>
@@ -969,7 +1025,9 @@
         </div>
       </div>
     </section>
+    -->
 
+    <!--
     <section class="drawer-overlay" id="returnDrawer">
       <div class="drawer">
         <div class="drawer-body">
@@ -990,6 +1048,7 @@
         </div>
       </div>
     </section>
+    -->
 
     <div class="toast" id="toast">签收成功</div>
   </main>
@@ -1014,10 +1073,6 @@
     }
 
     const signConfirm = document.getElementById("signConfirm");
-    const damageConfirm = document.getElementById("damageConfirm");
-    const returnDrawer = document.getElementById("returnDrawer");
-    const drawerWaybillNo = document.getElementById("drawerWaybillNo");
-    const drawerOrderNo = document.getElementById("drawerOrderNo");
     const toast = document.getElementById("toast");
     const waybillSearch = document.getElementById("waybillSearch");
     const emptyState = document.getElementById("emptyState");
@@ -1028,6 +1083,7 @@
     function getDefaultProgress() {
       return {
         signedWaybillNos: [],
+        signedCardIds: [],
         searchKeyword: "",
         scrollTop: 0
       };
@@ -1039,7 +1095,8 @@
         return {
           ...getDefaultProgress(),
           ...cache,
-          signedWaybillNos: Array.isArray(cache?.signedWaybillNos) ? cache.signedWaybillNos : []
+          signedWaybillNos: Array.isArray(cache?.signedWaybillNos) ? cache.signedWaybillNos : [],
+          signedCardIds: Array.isArray(cache?.signedCardIds) ? cache.signedCardIds : []
         };
       } catch (error) {
         return getDefaultProgress();
@@ -1068,27 +1125,23 @@
       layer.classList.remove("show");
     }
 
-    function getCardInfo(card) {
-      return {
-        waybillNo: card.querySelector(".waybill-no").textContent.trim(),
-        orderNo: card.querySelector(".order-code").textContent.split("｜")[0].trim()
-      };
+    function getCardId(card) {
+      return card.querySelector(".waybill-no")?.textContent.trim()
+        || card.querySelector(".order-code")?.textContent.trim()
+        || "";
     }
 
-    function getWaybillNo(card) {
-      return card.querySelector(".waybill-no").textContent.trim();
-    }
-
-    function markWaybillSigned(waybillNo) {
-      if (!progress.signedWaybillNos.includes(waybillNo)) {
-        progress.signedWaybillNos.push(waybillNo);
+    function markCardSigned(cardId) {
+      if (!progress.signedCardIds.includes(cardId)) {
+        progress.signedCardIds.push(cardId);
         saveProgress();
       }
     }
 
-    function restoreSignedWaybills() {
+    function restoreSignedCards() {
+      const signedIds = new Set([...progress.signedWaybillNos, ...progress.signedCardIds]);
       document.querySelectorAll(".content .waybill-card").forEach((card) => {
-        if (progress.signedWaybillNos.includes(getWaybillNo(card))) {
+        if (signedIds.has(getCardId(card))) {
           card.remove();
         }
       });
@@ -1100,14 +1153,14 @@
       let visibleCount = 0;
 
       cards.forEach((card) => {
-        const waybillNo = card.querySelector(".waybill-no").textContent.trim().toUpperCase();
-        const shouldShow = keyword === "" || waybillNo === keyword;
+        const searchText = card.textContent.replace(/\s+/g, "").toUpperCase();
+        const shouldShow = keyword !== "" && searchText.includes(keyword.replace(/\s+/g, ""));
         card.classList.toggle("hidden", !shouldShow);
         if (shouldShow) visibleCount += 1;
       });
 
-      emptyState.textContent = keyword === "" ? "暂无待签收运单" : "未找到匹配的待签收运单";
-      emptyState.classList.toggle("show", visibleCount === 0);
+      emptyState.textContent = "未找到匹配的待签收记录";
+      emptyState.classList.toggle("show", keyword !== "" && visibleCount === 0);
     }
 
     function saveSearchKeyword() {
@@ -1128,11 +1181,9 @@
 
     function finishSign() {
       hideLayer(signConfirm);
-      hideLayer(damageConfirm);
-      hideLayer(returnDrawer);
 
       if (activeCard) {
-        markWaybillSigned(getWaybillNo(activeCard));
+        markCardSigned(getCardId(activeCard));
         activeCard.remove();
         activeCard = null;
       }
@@ -1146,7 +1197,7 @@
     }
 
     addStaticResourceVersion();
-    restoreSignedWaybills();
+    restoreSignedCards();
     restoreSearchKeyword();
     restoreScrollTop();
 
@@ -1183,23 +1234,6 @@
       }
 
       if (action === "confirm-sign") {
-        hideLayer(signConfirm);
-        showLayer(damageConfirm);
-      }
-
-      if (action === "no-damage") {
-        finishSign();
-      }
-
-      if (action === "has-damage") {
-        const info = getCardInfo(activeCard);
-        drawerWaybillNo.textContent = info.waybillNo;
-        drawerOrderNo.textContent = info.orderNo;
-        hideLayer(damageConfirm);
-        showLayer(returnDrawer);
-      }
-
-      if (action === "return-cancel" || action === "return-submit") {
         finishSign();
       }
     });
